@@ -8,15 +8,16 @@
     "node": ">=22.15"
   },
   "scripts": {
-    "dev": "waku dev",
+    "dev": "pnpm env:local && waku dev",
+    "env:local": "tsx celld/scripts/write-dev-vars.ts",
     "build": "waku build",
-    "build:celld": "pnpm build && tsx scripts/package-celld.ts",
-    "dev:celld": "tsx scripts/dev-celld.ts",
+    "build:celld": "pnpm build && tsx celld/scripts/package.ts",
+    "dev:celld": "pnpm env:local && pnpm build:celld && tsx celld/scripts/dev.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm test",
     "check:celld": "pnpm build:celld && pnpm test",
-    "deploy": "tsx scripts/deploy.ts"
+    "deploy": "tsx celld/scripts/deploy-waku.ts"
   },
   "dependencies": {
     "waku": "1.0.0-rc.3",
