@@ -3,6 +3,7 @@ node_modules/
 .env.local
 .dev.vars
 .wrangler.deploy.jsonc
+.wrangler.celld.jsonc
 .celld/
 .wrangler/
 dist/
