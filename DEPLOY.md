@@ -628,9 +628,9 @@ Reference: [Diagnose a fleet](https://github.com/denoland/celld/blob/main/docs/R
 
 # Waku compatibility checklist
 
-Waku's Cloudflare build uses an additional-module model that Celld's prebundled `no_bundle` deploy does not automatically support. The `celld/scripts/package.ts` bridge to `dist/celld/worker.mjs` is **experimental**. Do not deploy this starter to production until all of the following pass using pinned Waku, React and Celld versions:
+Waku's Cloudflare build uses an additional-module model that Celld's prebundled `no_bundle` deploy does not automatically support. The `celld/scripts/package.ts` bridge to `dist/celld/worker.mjs` is **experimental**. The canonical root Wrangler config points to Waku's source entry for the Cloudflare Vite plugin; a derived and ignored `.wrangler.celld.jsonc` points to the bundled Worker and drops unsupported Wrangler `ESModule` rules. Do not deploy this starter to production until all of the following pass using pinned Waku, React and Celld versions:
 
-1. `pnpm build:celld` emits one server JavaScript entry with no unresolved sibling JS imports.
+1. `pnpm build:celld` emits one server JavaScript entry with no unresolved sibling JS imports and generates `.wrangler.celld.jsonc`.
 2. `pnpm dev:celld` starts on a real Celld runtime without module-resolution, AsyncLocalStorage or streaming errors.
 3. `GET /` serves static/SSR HTML and corresponding CSS and JS assets; the counter hydrates and updates.
 4. `GET /demo` renders the `GREETING` Worker binding dynamically using local `.dev.vars` values.
@@ -642,4 +642,4 @@ Waku's Cloudflare build uses an additional-module model that Celld's prebundled 
 
 A successful TypeScript check, build, or `celld deploy --dry-run` is not runtime proof. See [Celld compatibility](https://github.com/denoland/celld/blob/main/docs/cloudflare-compat.md), [prebuilt Worker restrictions](https://github.com/denoland/celld/blob/main/docs/wasm.md), and [Waku Cloudflare guide](https://waku.gg/guides/cloudflare).
 
-The Waku repository still needs a committed pnpm lockfile following a verified install; its workflow temporarily uses a non-frozen install. Restore `--frozen-lockfile` in that repository to match the Hono workflow after committing the lockfile.
+The Waku repository still needs a committed pnpm lockfile following a verified install; its workflow temporarily uses a non-frozen install. Restore `--frozen-lockfile` and pnpm setup-node caching in that repository to match the Hono workflow after committing the lockfile.
