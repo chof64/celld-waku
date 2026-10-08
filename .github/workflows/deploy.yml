@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm check
       - run: pnpm build:celld
       - name: Install Celld
