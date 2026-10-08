@@ -11,6 +11,8 @@ A **full-stack React** starter for [Celld](https://github.com/denoland/celld), u
 
 Both follow the [same shared architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld production runbook](./DEPLOY.md), env allowlist, `ENV_FILE` secret model, and CI workflow. Read [SYNC.md](./SYNC.md) when changing a convention that applies to both.
 
+Each standalone workflow publishes **one complete Celld application**. To put both Workers in a shared fleet, compose them in a single deployment and use one publisher; running both workflows independently against the same fleet would replace the application, not combine it.
+
 **Compatibility status: experimental.** Waku's Cloudflare build is not directly deployable to Celld's current prebundled Worker format. We have an experimental packaging bridge, but React Server Components, SSR/hydration, and Server Actions have not yet been verified end-to-end on Celld. Keep this starter out of production until the [Waku compatibility checklist](./DEPLOY.md#waku-compatibility-checklist) passes.
 
 ## Get started
