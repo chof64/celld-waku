@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.local
+.dev.vars
+.wrangler.deploy.jsonc
+.celld/
+.wrangler/
+dist/
+src/pages.gen.ts
+coverage/
+*.tsbuildinfo

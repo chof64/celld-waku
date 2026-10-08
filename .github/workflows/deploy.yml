@@ -1,0 +1,68 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: celld-waku-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    name: Deploy to Celld
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build:celld
+      - name: Install Celld
+        shell: bash
+        env:
+          CELLD_VERSION: ${{ vars.CELLD_VERSION }}
+        run: |
+          test -n "$CELLD_VERSION" || { echo "CELLD_VERSION required" >&2; exit 1; }
+          curl -fsSL https://celld.dev/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          celld --version
+      - name: Write application environment
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          test -n "$ENV_FILE" || { echo "ENV_FILE secret required" >&2; exit 1; }
+          umask 077
+          printf '%s\n' "$ENV_FILE" > .env
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { parse } from 'dotenv';
+          const env = parse(readFileSync('.env'));
+          const banned = Object.keys(env).filter((key) => key.startsWith('CELLD_') || key.startsWith('AWS_') || key === 'S3_ENDPOINT');
+          if (banned.length) { console.error('ENV_FILE must not contain fleet settings:', banned.join(', ')); process.exit(1); }
+          NODE
+      - name: Deploy dry run
+        shell: bash
+        env: &fleet
+          CELLD_BUCKET: ${{ vars.CELLD_BUCKET }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+        run: |
+          for key in CELLD_BUCKET AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do test -n "${!key}" || { echo "$key is required" >&2; exit 1; }; done
+          pnpm deploy -- --dry-run
+      - name: Deploy
+        env: *fleet
+        run: pnpm deploy

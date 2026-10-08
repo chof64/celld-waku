@@ -1,0 +1,41 @@
+{
+  "name": "celld-waku",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=22.15"
+  },
+  "scripts": {
+    "dev": "waku dev",
+    "build": "waku build",
+    "build:celld": "pnpm build && tsx scripts/package-celld.ts",
+    "dev:celld": "tsx scripts/dev-celld.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test",
+    "check:celld": "pnpm build:celld && pnpm test",
+    "deploy": "tsx scripts/deploy.ts"
+  },
+  "dependencies": {
+    "waku": "1.0.0-rc.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-server-dom-webpack": "19.3.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.63.0",
+    "@cloudflare/workers-types": "^5.20261007.1",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "dotenv": "^18.0.6",
+    "esbuild": "0.28.2",
+    "jsonc-parser": "^3.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}
