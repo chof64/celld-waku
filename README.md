@@ -1,50 +1,82 @@
 # Celld + Waku
 
-A **full-stack React** starter for [Celld](https://github.com/denoland/celld), built on [Waku](https://waku.gg/). Its sibling [celld-hono](https://github.com/chof64/celld-hono) is backend-first; this template adds SSR, React Server Components, client components, Server Actions and Waku file-based API routes.
+A **full-stack React** starter for [Celld](https://github.com/denoland/celld), using [Waku](https://waku.gg/) for server-rendered pages, React Server Components, client interactivity, Server Actions and API routes.
 
-**Compatibility status: experimental.** The official Waku Cloudflare build is not directly deployable to Celld without packaging, and the RSC runtime has not been validated end-to-end on Celld. Do not ship this starter to production until the [smoke-test checklist](./DEPLOY.md#celld-runtime-compatibility-checklist) passes.
+## Sibling starters
+
+| Starter | Purpose |
+| --- | --- |
+| **[celld-hono](https://github.com/chof64/celld-hono)** | Backend APIs, Durable Objects and stateful services |
+| **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | Full-stack web UI, SSR/RSC, React, and public API handlers |
+
+Both follow the [same shared architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld production runbook](./DEPLOY.md), env allowlist, `ENV_FILE` secret model, and CI workflow. Read [SYNC.md](./SYNC.md) when changing a convention that applies to both.
+
+**Compatibility status: experimental.** Waku's Cloudflare build is not directly deployable to Celld's current prebundled Worker format. We have an experimental packaging bridge, but React Server Components, SSR/hydration, and Server Actions have not yet been verified end-to-end on Celld. Keep this starter out of production until the [Waku compatibility checklist](./DEPLOY.md#waku-compatibility-checklist) passes.
 
 ## Get started
 
-Requires Node.js >=22.15, pnpm, and (for Celld commands) a Celld CLI matching your deployed fleet version.
+Requires Node.js 22.15+ and pnpm. Celld commands additionally require a matching Celld CLI.
 
 ```sh
-corepack enable
 pnpm install
 cp .env.example .env
 pnpm dev
 ```
 
-Open http://localhost:3000. The default example has a static landing page with an interactive React counter, a dynamic server-rendered binding demo at `/demo`, and a public health endpoint at `/api/health`.
+Open `http://localhost:3000`. The Vite/Cloudflare dev server uses local `.dev.vars` generated from the **allowed application variables**, so `GREETING` works in server-side pages. The starter includes a static landing page and React counter, a dynamically server-rendered page at `/demo`, and JSON health APIs at `/health` and `/api/health`.
 
-`pnpm dev` uses Waku's Cloudflare Vite plugin and workerd environment. For a production-like Celld build and local runtime, run `pnpm dev:celld`, then visit http://127.0.0.1:9876. This command builds before starting Celld; use `pnpm dev` during ordinary UI iteration.
+For a production-like Celld local run instead of Vite/workerd development:
+
+```sh
+pnpm dev:celld
+```
+
+This prepares allowed vars, builds Waku, packages the server bundle, then invokes **native** `celld dev .` at `http://127.0.0.1:9876`. This path is currently experimental, and build success does not prove runtime compatibility.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Waku development server with Vite |
+| `pnpm dev` | Prepare Worker vars and run Waku's Vite development server |
+| `pnpm env:local` | Regenerate ignored `.dev.vars` from the application allowlist |
 | `pnpm build` | Native Waku production build |
-| `pnpm build:celld` | Build Waku, then attempt Celld-compatible one-module packaging |
-| `pnpm dev:celld` | Prepare Worker vars, build, and run local Celld |
+| `pnpm build:celld` | Waku build + experimental single-module Celld packaging |
+| `pnpm dev:celld` | Prepare/build then run native Celld |
 | `pnpm typecheck` | TypeScript checks |
-| `pnpm test` | Tests |
+| `pnpm test` | Unit tests |
 | `pnpm check` | Type checks and tests |
-| `pnpm check:celld` | Build and test (not a runtime compatibility proof) |
-| `pnpm deploy` | Build and invoke native `celld deploy` |
+| `pnpm check:celld` | Build and tests; not a full runtime compatibility check |
+| `pnpm deploy` | Package Waku, inject Worker vars and run native `celld deploy` |
 
-## Development conventions
+The common environment, development and deployment helpers live under `celld/scripts/`, matching [celld-hono](https://github.com/chof64/celld-hono). Waku adds only its own build/packaging and preparation wrappers.
 
-Waku's `src/pages` convention is authoritative. Pages use React Server Components by default. Add `export const getConfig = async () => ({ render: 'dynamic' as const })` when server rendering must happen on every request. Put interactive React in `'use client'` components. Waku APIs live in `src/pages/_api` and expose named `GET`, `POST`, etc. handlers; the `_api` segment is stripped from URLs. Validate data with Zod and authorize *both* Server Actions and API mutations.
+## Full-stack conventions
 
-Read [ARCHITECTURE.md](./ARCHITECTURE.md) for ownership rules and [DEPLOY.md](./DEPLOY.md) for the CI and Celld compatibility process.
+- **Pages and layouts:** Waku's `src/pages` filesystem convention. Static by default; export `getConfig` with `render: 'dynamic'` for SSR.
+- **Interactive UI:** React modules with `'use client'`. Client components cannot import server-only bindings or credentials.
+- **Server Actions:** For web-only mutations. Validate and authorize inputs; handle retries and duplicates.
+- **Public API:** `src/pages/_api/` handlers with named HTTP methods. One resource URL per file; group GET/POST/etc. for the same URL. Use RESTful APIs for Flutter, external services, and webhooks.
+- **Domain logic:** Keep reusable functions independent of Waku pages, actions and HTTP transport. Do not call your own public API from the server just to reuse business logic.
+- **Validation:** Zod as default; Standard Schema where supported.
 
-## Cloudflare and Celld bindings
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for boundaries, folder layout and state ownership.
 
-Server-only code can import `env` from `cloudflare:workers`, which Celld implements. Add new bindings to `wrangler.jsonc` and their types to `src/env.d.ts`. Add environment string keys to `scripts/env.ts` before passing any from `.env` or CI. Never leak fleet credentials into the Worker.
+## Celld bindings
 
-Waku does **not** currently support defining Durable Object classes inside its own Worker. To use DOs, implement them in a separate Hono Worker (such as one based on celld-hono), deploy it to the same Celld fleet, and communicate through a Celld service binding. This needs separate script identities even if both are co-hosted in one fleet.
+Server-side Waku code can import `env` from `cloudflare:workers`. Declare bindings in the root `wrangler.jsonc`, type them in `celld/env.ts` and `src/env.d.ts`, and expose string variables only through the `workerEnvironment` allowlist. `.env.example` and `.env.prod.example` declare the application contract; the process environment overrides `.env`.
 
-## CI
+Waku does **not currently define Durable Object classes in its own Worker**. Use a separate Hono/DO Worker via a Celld service binding when stateful entity coordination is needed. That Hono Worker can be co-hosted on the same fleet, with its own script identity and migrations.
 
-The included [GitHub Actions workflow](./.github/workflows/deploy.yml) runs on pushes to `main` or manual dispatch from `main`. Configure the `production` environment with `CELLD_VERSION`, `CELLD_BUCKET`, `AWS_REGION`, optional `S3_ENDPOINT`, storage credential secrets, and `ENV_FILE` (application variables only). Deployment is serialized and first uses `--dry-run`.
+## Deploy and CI
+
+```sh
+pnpm check
+pnpm deploy -- --dry-run
+pnpm deploy
+```
+
+The `production` GitHub Environment requires `CELLD_VERSION`, `CELLD_BUCKET`, `AWS_REGION`, optional `S3_ENDPOINT`, storage credential secrets, and `ENV_FILE` containing application-only `KEY=value` pairs. The deployment scripts use the same `.wrangler.deploy.jsonc` generation and cleanup as Hono and **do not** call `wrangler deploy`.
+
+Read the self-contained [DEPLOY.md](./DEPLOY.md) for Coolify/Docker fleet topology, upgrades, graceful drains, CI setup, and the Waku runtime compatibility checklist. GitHub Actions concurrency alone does not coordinate deployment writers across distinct repositories; use one composed fleet deployment pipeline for Xicar's multi-repository application.
+
+The pnpm lockfile has not yet been generated/validated for the Waku starter, so Waku CI temporarily uses `--no-frozen-lockfile`; Hono correctly retains `--frozen-lockfile`. Restore the frozen setting once the Waku lockfile is committed.
