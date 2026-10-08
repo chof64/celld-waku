@@ -31,7 +31,7 @@ For a production-like Celld local run instead of Vite/workerd development:
 pnpm dev:celld
 ```
 
-This prepares allowed vars, builds Waku, packages the server bundle, then invokes **native** `celld dev .` at `http://127.0.0.1:9876`. This path is currently experimental, and build success does not prove runtime compatibility.
+This prepares allowed vars, builds Waku, packages the server bundle, derives an ignored `.wrangler.celld.jsonc`, then invokes **native** `celld dev` with that config at `http://127.0.0.1:9876`. This path is currently experimental, and build success does not prove runtime compatibility.
 
 ## Commands
 
@@ -48,7 +48,7 @@ This prepares allowed vars, builds Waku, packages the server bundle, then invoke
 | `pnpm check:celld` | Build and tests; not a full runtime compatibility check |
 | `pnpm deploy` | Package Waku, inject Worker vars and run native `celld deploy` |
 
-The common environment, development and deployment helpers live under `celld/scripts/`, matching [celld-hono](https://github.com/chof64/celld-hono). Waku adds only its own build/packaging and preparation wrappers.
+The common environment, development and deployment helpers live under `celld/scripts/`, matching [celld-hono](https://github.com/chof64/celld-hono). Waku adds only its own build/packaging and preparation wrappers. The root `wrangler.jsonc` points to the native Waku source Worker for Vite; Waku's Celld commands derive `.wrangler.celld.jsonc` with the packaged Worker entry. Only the root config is hand-maintained.
 
 ## Full-stack conventions
 
@@ -79,4 +79,4 @@ The `production` GitHub Environment requires `CELLD_VERSION`, `CELLD_BUCKET`, `A
 
 Read the self-contained [DEPLOY.md](./DEPLOY.md) for Coolify/Docker fleet topology, upgrades, graceful drains, CI setup, and the Waku runtime compatibility checklist. GitHub Actions concurrency alone does not coordinate deployment writers across distinct repositories; use one composed fleet deployment pipeline for Xicar's multi-repository application.
 
-The pnpm lockfile has not yet been generated/validated for the Waku starter, so Waku CI temporarily uses `--no-frozen-lockfile`; Hono correctly retains `--frozen-lockfile`. Restore the frozen setting once the Waku lockfile is committed.
+The pnpm lockfile has not yet been generated/validated for the Waku starter, so Waku CI temporarily uses `--no-frozen-lockfile`; Hono correctly retains `--frozen-lockfile`. Restore the frozen install and pnpm caching once the Waku lockfile is committed.
