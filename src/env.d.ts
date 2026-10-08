@@ -1,7 +1,7 @@
+import type { WorkerBindings } from "../celld/env";
+
 declare global {
-  interface Env {
-    GREETING?: string;
-    ASSETS: Fetcher;
-  }
+  interface Env extends WorkerBindings {}
 }
+
 export {};
