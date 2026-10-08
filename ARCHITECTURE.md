@@ -108,9 +108,13 @@ project/
 │   ├── env.ts                 # Explicit Worker allowlist + binding types
 │   └── scripts/
 │       ├── env.ts             # Shared env loader/selector
-│       ├── dev.ts             # Writes .dev.vars + native celld dev
-│       ├── deploy.ts          # Native celld deploy wrapper
-│       └── package.ts         # Waku-to-Celld packaging experiment
+│       ├── dev.ts             # Shared native celld dev launcher
+│       ├── deploy.ts          # Shared native celld deploy wrapper
+│       ├── write-dev-vars.ts  # Waku dev environment preparation
+│       ├── package.ts         # Waku-to-Celld bundling experiment
+│       ├── config.ts          # Ignored Celld config derived from Wrangler
+│       ├── dev-waku.ts        # Waku-specific Celld dev entry
+│       └── deploy-waku.ts     # Waku-specific build and deploy
 ├── tests/
 ├── waku.config.ts
 ├── wrangler.jsonc             # Canonical runtime config
@@ -139,13 +143,15 @@ pnpm build:celld  Package the Worker for Celld
 pnpm deploy       Build + native celld deploy
 ```
 
+The **only hand-maintained config** is root `wrangler.jsonc`, whose `main` points to Waku's source entry for the Cloudflare Vite development plugin. `pnpm build:celld` bundles the Worker and writes an ignored `.wrangler.celld.jsonc` with `main` pointing to the generated file and without Wrangler-only ESModule rules. The shared Celld dev/deploy helpers read that derived config through `CELLD_APPLICATION_CONFIG`. This is not a second hand-maintained environment config.
+
 Keep the same CI `ENV_FILE` secret and GitHub Environment contract as the Hono starter. `ENV_FILE` is application-only `KEY=value` content. Node and fleet values belong in the deployment step's environment, not `.env`. The `pnpm deploy` script builds first; both scripts then use the same temporary `.wrangler.deploy.jsonc` and `celld deploy` wrapper.
 
 ## 8. Build compatibility warning
 
 The upstream Waku Cloudflare adapter emits multiple JavaScript modules and uses Wrangler `ESModule` discovery rules. Celld's prebuilt `no_bundle: true` deployment requires one bundled JavaScript entry and does not discover Waku's additional JS modules.
 
-The template therefore has an **experimental packaging bridge** from `dist/server/index.js` to `dist/celld/worker.mjs`, while `dist/public` remains the static asset source. Compiling is not sufficient evidence of runtime support: verify Celld can execute SSR/RSC streaming, hydration, Server Actions, API handlers, `cloudflare:workers` imports and all required assets.
+The template therefore has an **experimental packaging bridge** from `dist/server/index.js` to `dist/celld/worker.mjs`, while `dist/public` remains the static asset source. The root Wrangler configuration remains Waku/Vite-compatible, and the generated `.wrangler.celld.jsonc` strips its unsupported module rules for native Celld execution. Compiling is not sufficient evidence of runtime support: verify Celld can execute SSR/RSC streaming, hydration, Server Actions, API handlers, `cloudflare:workers` imports and all required assets.
 
 See [DEPLOY.md](./DEPLOY.md#waku-compatibility-checklist) for required runtime tests. Never describe the Waku/Celld integration as production-ready until these succeed against pinned versions.
 
