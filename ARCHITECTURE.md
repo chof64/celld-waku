@@ -27,7 +27,7 @@ These principles are intentionally **identical in both Celld starters**. When ch
 | [`chof64/celld-hono`](https://github.com/chof64/celld-hono) | Backend-only APIs and Celld stateful services | Hono REST/WebSocket routes, Durable Objects, Queues and Workflows |
 | [`chof64/celld-waku`](https://github.com/chof64/celld-waku) | Full-stack React web applications | Waku pages, RSC/SSR, client components, Server Actions and API routes |
 
-They share **deployment, environment, security, and architectural principles**, not identical framework source code. They may run as separate Worker scripts in the same Celld fleet, connected by service bindings.
+They share **deployment, environment, security, and architectural principles**, not identical framework source code. They may coexist as separate Worker scripts **only when composed into one Celld application deployment**, connected by service bindings. Independently deploying each starter to the same fleet replaces its current application; it does not merge scripts.
 
 ## 2. Default stack
 
@@ -84,7 +84,7 @@ Waku React SSR / RSC / Server Actions / APIs
      +--- service binding -> Hono Worker -> Durable Objects
 ```
 
-Waku's current Cloudflare integration does **not** support defining Durable Object classes in the Waku Worker. When a feature needs a DO, implement it in a separate Worker (ideally based on [celld-hono](https://github.com/chof64/celld-hono)) and use a Celld service binding to reach it. The sibling can be co-hosted in the same fleet but retains its own script identity.
+Waku's current Cloudflare integration does **not** support defining Durable Object classes in the Waku Worker. When a feature needs a DO, implement it in a separate Worker (ideally based on [celld-hono](https://github.com/chof64/celld-hono)) and use a Celld service binding to reach it. The sibling can be co-hosted in the same fleet **when it is included in the same composed deployment**, but retains its own script identity. Running the two repositories' standalone deploy workflows against the same fleet does not compose them.
 
 The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono.
 
