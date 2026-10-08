@@ -1,6 +1,6 @@
 {
   "name": "celld-waku",
-  "main": "./dist/celld/worker.mjs",
+  "main": "./src/waku.server.tsx",
   "no_bundle": true,
   "compatibility_date": "2026-10-01",
   "compatibility_flags": [
@@ -15,5 +15,14 @@
       "/health",
       "/RSC/*"
     ]
-  }
+  },
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": [
+        "**/*.js",
+        "**/*.mjs"
+      ]
+    }
+  ]
 }
