@@ -1,4 +1,4 @@
-import type { WorkerBindings } from "../celld/env";
+import type { WorkerBindings } from "./env";
 
 declare global {
   interface Env extends WorkerBindings {}
