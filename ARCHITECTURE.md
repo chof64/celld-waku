@@ -14,7 +14,7 @@ These principles are intentionally **identical in both Celld starters**. When ch
 6. **Validate and authorize at every trust boundary.** Use Zod as the default schema implementation and Standard Schema where a framework provides a compatible integration. Treat Server Actions as public server entrypoints.
 7. **Make state ownership explicit.** For Xicar, PlanetScale Postgres and application S3 remain authoritative; Celld coordination/cache state is rebuildable unless a feature deliberately establishes a different persistence contract.
 8. **Use one canonical root `wrangler.jsonc`.** It declares binding identities and entrypoints but contains no production secrets. Do not add separate development, staging, or production Wrangler files by default.
-9. **Separate application variables from fleet credentials.** `src/env.ts` declares the application allowlist; `.env` supplies local values, and process variables override it. CI supplies application values via `ENV_FILE`; Celld bucket, node, and storage credentials remain process/infrastructure settings.
+9. **Separate application variables from fleet credentials.** A source-local Worker environment module declares the application allowlist; `.env` supplies local values, and process variables override it. CI supplies application values via `ENV_FILE`; Celld bucket, node, and storage credentials remain process/infrastructure settings.
 10. **Keep the Celld commands native and visible.** Project scripts may prepare environment and build artifacts, but `celld dev` and `celld deploy` own execution and publication. Do not deploy to Celld with `wrangler deploy`.
 11. **Standardize operations across both starters.** Use the same production GitHub Environment contract, pinned `CELLD_VERSION`, serialized deploys, dry-run before publish, and the same single-node/multi-node/upgrade runbook.
 12. **Protect persistent identities.** Treat Worker names, Durable Object class and binding names, migration tags, service bindings, and storage identities as schema. Append migrations intentionally; do not casually rename live resources.
@@ -106,19 +106,18 @@ project/
 │   ├── components/            # ChatApp, sidebar and message components
 │   ├── actions/               # Waku Server Actions (send chat message)
 │   ├── features/chat/         # Shared schemas, gateway, server history
+│   ├── env.ts                 # Worker allowlist and binding types
 │   ├── env.d.ts               # Worker bindings type augmentation
 │   └── styles.css
-├── celld/
-│   ├── env.ts                 # Explicit Worker allowlist + binding types
-│   └── scripts/
-│       ├── env.ts             # Shared env loader/selector
-│       ├── dev.ts             # Shared native celld dev launcher
-│       ├── deploy.ts          # Shared native celld deploy wrapper
-│       ├── write-dev-vars.ts  # Waku dev environment preparation
-│       ├── package.ts         # Waku-to-Celld bundling experiment
-│       ├── config.ts          # Ignored Celld config derived from Wrangler
-│       ├── dev-waku.ts        # Waku-specific Celld dev entry
-│       └── deploy-waku.ts     # Waku-specific build and deploy
+├── scripts/
+│   ├── env.ts                 # Shared env loader/selector
+│   ├── dev.ts                 # Shared native celld dev launcher
+│   ├── deploy.ts              # Shared native celld deploy wrapper
+│   ├── write-dev-vars.ts      # Waku dev environment preparation
+│   ├── package.ts             # Waku-to-Celld bundling experiment
+│   ├── config.ts              # Ignored Celld config derived from Wrangler
+│   ├── dev-waku.ts            # Waku-specific Celld dev entry
+│   └── deploy-waku.ts         # Waku-specific build and deploy
 ├── tests/
 ├── waku.config.ts
 ├── wrangler.jsonc             # Canonical runtime config
@@ -132,7 +131,7 @@ Do not introduce a separate `server/` router, obligatory controller/repository l
 
 ## 7. Application environment and development
 
-Both repositories use the **same** `scripts/env.ts`, `scripts/dev.ts`, and `scripts/deploy.ts` helpers. `.env` is optional locally; the process environment overrides its keys. Only keys in `src/env.ts` are exported as Worker string variables. Deployment infrastructure credentials are not copied into the Worker.
+Both repositories share the same runtime helper behavior in `scripts/env.ts`, `scripts/dev.ts`, and `scripts/deploy.ts`. `.env` is optional locally; the process environment overrides its keys. Only keys in `src/env.ts` are exported as Worker string variables. Deployment infrastructure credentials are not copied into the Worker.
 
 Commands:
 
