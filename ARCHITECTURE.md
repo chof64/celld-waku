@@ -1,6 +1,6 @@
 # Architecture
 
-A small, opinionated **full-stack React** application starter using Waku and Celld. Waku owns the web application; Celld owns Worker execution and native bindings. The principles below are shared with the backend-only [celld-hono](https://github.com/chof64/celld-hono) starter.
+A small, opinionated **SSR/RSC-first React full-stack** starter using Waku and Celld. Waku owns the web application's server and client rendering; Celld owns Worker execution and native bindings. The principles below are shared with the API-first, optionally SPA-enabled [celld-hono](https://github.com/chof64/celld-hono) starter.
 
 ## 1. Shared architecture principles
 
@@ -41,7 +41,7 @@ React 19 + Vite + TypeScript
 Zod
 ```
 
-Waku owns frontend routing and rendering, not a custom Hono router added by the template. APIs use standard `Request` and `Response`. Zod validates untrusted input; Standard Schema is the preferred shared schema contract for integrations that support it. Keep optional choices such as ORM, authentication provider, UI kit, state store and secrets manager open.
+Waku owns server-rendered React, frontend routing and rendering, not a custom Hono router added by the template. Choose the sibling Hono starter for API-first multi-client applications that do not need SSR/RSC. APIs use standard `Request` and `Response`. Zod validates untrusted input; Standard Schema is the preferred shared schema contract for integrations that support it. Keep optional choices such as ORM, authentication provider, UI kit, state store and secrets manager open.
 
 ## 3. Rendering and client boundaries
 
@@ -86,7 +86,7 @@ Waku React SSR / RSC / Server Actions / APIs
 
 Waku's current Cloudflare integration does **not** support defining Durable Object classes in the Waku Worker. When a feature needs a DO, implement it in a separate Worker (ideally based on [celld-hono](https://github.com/chof64/celld-hono)) and use a Celld service binding to reach it. The sibling can be co-hosted in the same fleet **when it is included in the same composed deployment**, but retains its own script identity. Running the two repositories' standalone deploy workflows against the same fleet does not compose them.
 
-The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses React SSR for initial history, a Waku Server Action for message submission, Waku HTTP/WebSocket routes for external access and realtime subscriptions, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
+Unlike an optional client-only SPA in Hono, the Waku React rendering model is part of this starter's baseline. The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses React SSR for initial history, a Waku Server Action for message submission, Waku HTTP/WebSocket routes for external access and realtime subscriptions, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
 
 ## 6. Project layout
 
@@ -176,7 +176,7 @@ Deployment is one application publication per fleet, not a different per-node ap
 | SSR or static web page | Waku route in `src/pages` |
 | Browser interactivity | React client component (chat composer, status, realtime feed) |
 | UI-specific mutation | Validated + authorized Waku Server Action |
-| External/mobile API | Waku `_api` HTTP handler |
+| External/mobile API | Waku `_api` HTTP handler (supported; consider Hono when shared APIs are the primary concern) |
 | Runtime bindings | `cloudflare:workers` in server-only code |
 | Durable entity / WebSocket hub | Hono/DO Worker via service binding (chat demo uses `CHAT_SERVICE`) |
 | Shared domain logic | Plain TS module imported by handlers/actions |
