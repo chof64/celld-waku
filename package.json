@@ -9,15 +9,15 @@
   },
   "scripts": {
     "dev": "pnpm env:local && waku dev",
-    "env:local": "tsx celld/scripts/write-dev-vars.ts",
+    "env:local": "tsx scripts/write-dev-vars.ts",
     "build": "waku build",
-    "build:celld": "pnpm build && tsx celld/scripts/package.ts && tsx celld/scripts/config.ts",
-    "dev:celld": "pnpm env:local && pnpm build:celld && tsx celld/scripts/dev-waku.ts",
+    "build:celld": "pnpm build && tsx scripts/package.ts && tsx scripts/config.ts",
+    "dev:celld": "pnpm env:local && pnpm build:celld && tsx scripts/dev-waku.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm test",
     "check:celld": "pnpm build:celld && pnpm test",
-    "deploy": "tsx celld/scripts/deploy-waku.ts"
+    "deploy": "tsx scripts/deploy-waku.ts"
   },
   "dependencies": {
     "waku": "1.0.0-rc.3",
