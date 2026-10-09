@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { parse } from "jsonc-parser";
 import { describe, expect, it } from "vitest";
 
-import { workerEnvironment } from "../celld/env";
+import { workerEnvironment } from "../src/env";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -36,7 +36,7 @@ describe("shared Celld starter standards", () => {
     expect(workflow).toContain("pnpm deploy -- --dry-run");
     expect(workflow).toContain("pnpm deploy");
     expect(workflow).toContain("CELLD_BUCKET");
-    const deploy = read("celld/scripts/deploy.ts");
+    const deploy = read("scripts/deploy.ts");
     expect(deploy).toContain('["deploy", "--config", deployConfigPath');
     expect(deploy).toContain(".wrangler.deploy.jsonc");
     expect(read("DEPLOY.md")).toContain("GitHub's concurrency groups do not coordinate across repositories");
