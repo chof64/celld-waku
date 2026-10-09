@@ -11,7 +11,7 @@ Its reference app is a **real-time chat interface** backed by the Durable Object
 | **[celld-hono](https://github.com/chof64/celld-hono)** | API-first for web/mobile clients; optional React/Vite SPA, Durable Objects, Queues, Workflows |
 | **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | SSR/RSC-focused React full-stack apps: client UI, Server Actions, public API routes |
 
-Waku **can** serve external/mobile clients through normal HTTP APIs, but the [Hono starter](https://github.com/chof64/celld-hono) is the simpler default when the API is primary and React is just one optional client. Hono also includes its own independent [React/Vite chat example](https://github.com/chof64/celld-hono/blob/main/WEB.md) that directly consumes the shared API.
+Waku **can** serve external/mobile clients through normal HTTP APIs, but the [Hono starter](https://github.com/chof64/celld-hono) is the simpler default when the API is primary and React is just one optional client. Hono also includes its own co-located [React/Vite chat example](https://github.com/chof64/celld-hono/blob/main/WEB.md) that directly consumes the shared API.
 
 Both share [13 architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld deployment operations](./DEPLOY.md), the `ENV_FILE` secret contract, and runtime helper conventions. See [SYNC.md](./SYNC.md) for the cross-repository maintenance contract.
 
