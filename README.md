@@ -1,6 +1,6 @@
 # Celld + Waku
 
-A **full-stack React** starter for [Celld](https://github.com/denoland/celld), built with [Waku](https://waku.gg/) for SSR, React Server Components, interactive client components, Server Actions and API routes.
+A **server-rendered, React full-stack** starter for [Celld](https://github.com/denoland/celld), built with [Waku](https://waku.gg/) for SSR, React Server Components, interactive client components, Server Actions and API routes. Choose it when React rendering and server-side UI workflows are central to the product.
 
 Its reference app is a **real-time chat interface** backed by the Durable Object chat backend in [celld-hono](https://github.com/chof64/celld-hono).
 
@@ -8,8 +8,10 @@ Its reference app is a **real-time chat interface** backed by the Durable Object
 
 | Starter | Purpose |
 | --- | --- |
-| **[celld-hono](https://github.com/chof64/celld-hono)** | Backend-only REST/WebSocket services, Durable Objects, Queues, Workflows |
-| **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | Full-stack React web apps: SSR/RSC, client UI, Server Actions, API routes |
+| **[celld-hono](https://github.com/chof64/celld-hono)** | API-first for web/mobile clients; optional React/Vite SPA, Durable Objects, Queues, Workflows |
+| **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | SSR/RSC-focused React full-stack apps: client UI, Server Actions, public API routes |
+
+Waku **can** serve external/mobile clients through normal HTTP APIs, but the [Hono starter](https://github.com/chof64/celld-hono) is the simpler default when the API is primary and React is just one optional client. Hono also includes its own independent [React/Vite chat example](https://github.com/chof64/celld-hono/blob/refactor/sync-waku-hono-standards/WEB.md) that directly consumes the shared API.
 
 Both share [13 architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld deployment operations](./DEPLOY.md), the `ENV_FILE` secret contract, and runtime helper conventions. See [SYNC.md](./SYNC.md) for the cross-repository maintenance contract.
 
@@ -76,6 +78,10 @@ The frontend still renders when Hono is unavailable and shows a connection error
 | `pnpm deploy` | Build and invoke native `celld deploy` |
 
 If both Hono and Waku are running on local Celld, use separate ports (see [CHAT.md](./CHAT.md#testing-waku-on-celld-rather-than-workerd)).
+
+## When to choose this starter
+
+Use **Waku** for authenticated server-rendered React layouts, SEO-sensitive pages, React Server Components and Server Actions. Use **Hono** for shared ride-hailing/wallet/messaging APIs, Flutter clients, realtime coordination and optional client-side React apps. These are framework defaults, not restrictions: Waku can serve external REST APIs and Hono can serve compiled SPA assets.
 
 ## Development conventions
 
