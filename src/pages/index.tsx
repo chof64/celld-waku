@@ -1,8 +1,23 @@
-import { Link } from "waku";
-import { Counter } from "../components/counter";
+import { ChatApp } from "../components/chat-app";
+import { loadChatHistory } from "../features/chat/backend.server";
+import { getRoom } from "../features/chat/rooms";
 
-export default function Home() {
-  return <section><title>Celld + Waku</title><h1>Full-stack React on Celld</h1><p>Waku owns pages, layouts, server components and API routes. Celld owns Worker execution and bindings.</p><Counter /><p><Link to="/demo">Visit the server-rendered demo →</Link></p></section>;
+export default async function HomePage() {
+  const room = getRoom("lobby");
+  const history = await loadChatHistory(room.id);
+
+  return (
+    <>
+      <title>General · celld.chat</title>
+      <meta name="description" content="A realtime React chat powered by Waku, Hono and Celld." />
+      <ChatApp
+        key={room.id}
+        room={room}
+        initialMessages={history.messages}
+        initialAvailable={history.available}
+      />
+    </>
+  );
 }
 
-export const getConfig = async () => ({ render: "static" as const });
+export const getConfig = async () => ({ render: "dynamic" as const });
