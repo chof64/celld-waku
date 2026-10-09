@@ -9,7 +9,7 @@ describe("Waku full-stack starter", () => {
     expect(config.assets.directory).toBe("./dist/public");
     expect(config.rules).toContainEqual({ type: "ESModule", globs: ["**/*.js", "**/*.mjs"] });
     const packageScripts = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).scripts;
-    expect(packageScripts["build:celld"]).toContain("celld/scripts/config.ts");
+    expect(packageScripts["build:celld"]).toContain("scripts/config.ts");
     expect(readFileSync(new URL("../.gitignore", import.meta.url), "utf8")).toContain(".wrangler.celld.jsonc");
   });
 });
