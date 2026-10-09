@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
+import { sendChatMessage } from "../actions/send-chat-message";
+
 import {
-  chatMessageSchema,
   historySchema,
   mergeMessages,
   roomPath,
@@ -39,8 +40,6 @@ export function ChatApp({
   const [unread, setUnread] = useState(0);
   const messagesRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
-
-  const historyUrl = roomPath(room.id, "/messages");
 
   useEffect(() => {
     try {
@@ -170,23 +169,9 @@ export function ChatApp({
     setSending(true);
     setNotice("");
     try {
-      const response = await fetch(historyUrl, {
-        method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify(input.data),
-      });
-      if (!response.ok) {
-        const body: unknown = await response.json().catch(() => null);
-        const reason =
-          body && typeof body === "object" && "error" in body && typeof body.error === "string"
-            ? body.error
-            : "The message could not be sent.";
-        throw new Error(reason);
-      }
-      const saved = chatMessageSchema.safeParse(await response.json());
-      if (!saved.success) throw new Error("The chat backend returned an invalid message.");
+      const saved = await sendChatMessage({ roomId: room.id, ...input.data });
       stickToBottom.current = true;
-      addMessages([saved.data]);
+      addMessages([saved]);
       setDraft("");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The message could not be sent.");
