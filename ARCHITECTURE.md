@@ -86,7 +86,7 @@ Waku React SSR / RSC / Server Actions / APIs
 
 Waku's current Cloudflare integration does **not** support defining Durable Object classes in the Waku Worker. When a feature needs a DO, implement it in a separate Worker (ideally based on [celld-hono](https://github.com/chof64/celld-hono)) and use a Celld service binding to reach it. The sibling can be co-hosted in the same fleet **when it is included in the same composed deployment**, but retains its own script identity. Running the two repositories' standalone deploy workflows against the same fleet does not compose them.
 
-The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses its own React SSR and Waku HTTP routes, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
+The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses React SSR for initial history, a Waku Server Action for message submission, Waku HTTP/WebSocket routes for external access and realtime subscriptions, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
 
 ## 6. Project layout
 
@@ -146,7 +146,7 @@ pnpm build:celld  Package the Worker for Celld
 pnpm deploy       Build + native celld deploy
 ```
 
-The example's `CHAT_BACKEND_URL` is an explicit local-development fallback to a separately running Hono Worker; production composition should use the typed `CHAT_SERVICE` service binding instead. The browser never receives either binding and talks only to Waku's same-origin API. The Hono chat is a public **unauthenticated** example, not a production auth model. The Waku WebSocket upgrade proxy additionally needs a real runtime compatibility test.
+The example's `CHAT_BACKEND_URL` is an explicit local-development fallback to a separately running Hono Worker; production composition should use the typed `CHAT_SERVICE` service binding instead. The browser never receives either binding and talks only to Waku's same-origin APIs and Server Actions. The Hono chat is a public **unauthenticated** example, not a production auth model. The Waku WebSocket upgrade proxy additionally needs a real runtime compatibility test.
 
 The **only hand-maintained config** is root `wrangler.jsonc`, whose `main` points to Waku's source entry for the Cloudflare Vite development plugin. `pnpm build:celld` bundles the Worker and writes an ignored `.wrangler.celld.jsonc` with `main` pointing to the generated file and without Wrangler-only ESModule rules. The shared Celld dev/deploy helpers read that derived config through `CELLD_APPLICATION_CONFIG`. This is not a second hand-maintained environment config.
 
