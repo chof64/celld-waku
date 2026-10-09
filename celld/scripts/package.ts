@@ -13,6 +13,11 @@ const result = await build({ entryPoints: [server], outfile: output, bundle: tru
 const code = readFileSync(output, "utf8");
 const leftover = [...code.matchAll(/(?:import|export)\s*(?:[^'"\n]*?\sfrom\s*)?["']([^"']+)["']/g)].map((match) => match[1]).filter((name) => name.startsWith(".") || name.startsWith("/"));
 if (leftover.length) throw new Error(`Celld only deploys one JavaScript entry module; unresolved imports: ${leftover.join(", ")}`);
-if (/\bimport\s*\(\s*[^"'\s]/.test(code)) throw new Error("Worker bundle has nonliteral dynamic imports; verify Celld compatibility before deploying.");
+const dynamicImport = /\bimport\s*\(\s*[^"'\s]/.exec(code);
+if (dynamicImport) {
+  const position = dynamicImport.index;
+  const context = code.slice(Math.max(position - 110, 0), Math.min(position + 190, code.length));
+  throw new Error("Worker bundle has a nonliteral dynamic import near: " + context);
+}
 writeFileSync(resolve("dist/celld/bundle-report.json"), JSON.stringify({ entry: server, output, inputs: Object.keys(result.metafile!.inputs), externalImports: result.metafile!.outputs[output]?.imports ?? [] }, null, 2));
 console.log("Waku Worker packaged for Celld; runtime behavior still requires a Celld smoke test.");
