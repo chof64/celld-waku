@@ -104,6 +104,7 @@ project/
 │   │           ├── health.ts
 │   │           └── rooms/       # Room snapshot, messages, socket
 │   ├── components/            # ChatApp, sidebar and message components
+│   ├── actions/               # Waku Server Actions (send chat message)
 │   ├── features/chat/         # Shared schemas, gateway, server history
 │   ├── env.d.ts               # Worker bindings type augmentation
 │   └── styles.css
