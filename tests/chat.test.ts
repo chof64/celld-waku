@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { selectWorkerEnvironment } from "../celld/scripts/env";
+import { selectWorkerEnvironment } from "../scripts/env";
 
 import {
   chatMessageSchema,
