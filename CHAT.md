@@ -6,13 +6,15 @@ This repository uses a **real-time React chat** to demonstrate Waku's full-stack
 
 - **SSR / React Server Components:** initial room history is loaded directly from the Hono backend in the server-rendered Waku route (not by fetching the Waku app's own HTTP endpoint).
 - **Client React:** channel navigation, editable display name, composer, message feed, and reconnect status.
-- **REST API:** Waku exposes /api/rooms/:roomId, /messages (GET/POST), and /socket as same-origin routes, proxying to Hono.
+- **Server Actions:** the React composer invokes `src/actions/send-chat-message.ts` with validated input. Its server function sends a request directly to the Hono chat backend.
+- **REST API:** Waku also exposes `/api/rooms/:roomId`, `/messages` (GET/POST), and `/socket` as same-origin public routes, proxying to Hono.
 - **Durable Objects:** Hono's Room class owns per-room SQLite history and broadcasts new messages via hibernatable WebSockets.
 - **Realtime recovery:** the React client reconnects when a socket closes and re-fetches history to cover messages missed while disconnected.
 
 ```text
  Browser ───── GET / or /rooms/:id ────> Waku SSR ─┐
    │                                               │
+   ├── Submit message ────> Waku Server Action ──┤
    ├── GET/POST /api/rooms/:id/messages ──> Waku API │
    └── WebSocket /api/rooms/:id/socket ───> Waku API ├─> CHAT_SERVICE ─> Hono ─> Room DO
                                                    │      or local backend
@@ -99,7 +101,7 @@ The demo's Durable Object SQLite holds a bounded reference history; it is **not*
 
 1. Verify messages appear in initial HTML/RSC page output when history exists.
 2. Open two browser windows, send a message in one and observe the other update without refresh.
-3. Confirm the sender sees **one** saved message despite receiving both the POST response and WebSocket event.
+3. Confirm the sender sees **one** saved message despite receiving both the Server Action response and WebSocket event.
 4. Switch between General, Driver lounge, Dispatch and Support; histories must remain isolated.
 5. Stop Hono and observe reconnect status; restart it and confirm history re-sync restores missed messages.
 6. POST invalid JSON, blank text and overly long messages to verify the Waku API returns validation errors.
