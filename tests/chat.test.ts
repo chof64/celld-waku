@@ -94,20 +94,20 @@ describe("chat gateway", () => {
   });
 
   it("supports an explicit development backend origin without forwarding browser cookies", async () => {
-    let captured: Request | undefined;
+    const captured: Request[] = [];
     const response = await fetchChatBackend(
       { CHAT_BACKEND_URL: "http://127.0.0.1:9876" },
       roomPath("lobby"),
       { headers: { accept: "application/json" } },
       (async (request: Request) => {
-        captured = request;
+        captured.push(request);
         return Response.json({ messages: [] });
       }) as typeof fetch,
     );
 
     expect(response.ok).toBe(true);
-    expect(captured?.url).toBe("http://127.0.0.1:9876/api/rooms/lobby");
-    expect(captured?.headers.get("cookie")).toBeNull();
+    expect(captured[0]?.url).toBe("http://127.0.0.1:9876/api/rooms/lobby");
+    expect(captured[0]?.headers.get("cookie")).toBeNull();
   });
 
   it("refuses missing and malformed backend configuration", async () => {
