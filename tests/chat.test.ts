@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { selectWorkerEnvironment } from "../celld/scripts/env";
+
 import {
   chatMessageSchema,
   historySchema,
@@ -52,6 +54,14 @@ describe("chat contract", () => {
 });
 
 describe("chat gateway", () => {
+  it("exposes only the configured local chat origin, never fleet credentials", () => {
+    expect(selectWorkerEnvironment({
+      CHAT_BACKEND_URL: "http://127.0.0.1:9876",
+      CELLD_BUCKET: "s3://private-fleet",
+      AWS_SECRET_ACCESS_KEY: "must-stay-private",
+    })).toEqual({ CHAT_BACKEND_URL: "http://127.0.0.1:9876" });
+  });
+
   it("prefers the configured Celld service binding over network egress", async () => {
     const requests: Request[] = [];
     const response = await fetchChatBackend(
