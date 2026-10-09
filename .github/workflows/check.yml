@@ -20,4 +20,4 @@ jobs:
           node-version: 22
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm check
-      - run: pnpm build
+      - run: pnpm build:celld
