@@ -1,6 +1,6 @@
 # Architecture
 
-A small, opinionated **SSR/RSC-first React full-stack** starter using Waku and Celld. Waku owns the web application's server and client rendering; Celld owns Worker execution and native bindings. The principles below are shared with the API-first, optionally SPA-enabled [celld-hono](https://github.com/chof64/celld-hono) starter.
+A small, opinionated **SSR/RSC-first React full-stack** starter using Waku and Celld. Waku owns the web application's server and client rendering; Celld owns Worker execution and native bindings. The principles below are shared with the API-first, static-Waku-capable [celld-hono](https://github.com/chof64/celld-hono) starter.
 
 ## 1. Shared architecture principles
 
@@ -86,7 +86,7 @@ Waku React SSR / RSC / Server Actions / APIs
 
 Waku's current Cloudflare integration does **not** support defining Durable Object classes in the Waku Worker. When a feature needs a DO, implement it in a separate Worker (ideally based on [celld-hono](https://github.com/chof64/celld-hono)) and use a Celld service binding to reach it. The sibling can be co-hosted in the same fleet **when it is included in the same composed deployment**, but retains its own script identity. Running the two repositories' standalone deploy workflows against the same fleet does not compose them.
 
-Unlike an optional client-only SPA in Hono, the Waku React rendering model is part of this starter's baseline. The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses React SSR for initial history, a Waku Server Action for message submission, Waku HTTP/WebSocket routes for external access and realtime subscriptions, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
+Unlike Hono's optional static Waku frontend, the Waku React rendering model is part of this starter's baseline. The Waku Worker is still fully server-capable: it can implement API endpoints, Server Actions and stateless domain logic without delegating all operations to Hono. The reference chat uses React SSR for initial history, a Waku Server Action for message submission, Waku HTTP/WebSocket routes for external access and realtime subscriptions, while the sibling Hono Worker owns the Room Durable Object. See [CHAT.md](./CHAT.md) for the explicit API/WebSocket contract and local service setup.
 
 ## 6. Project layout
 
