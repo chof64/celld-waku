@@ -18,15 +18,15 @@ Both share [13 architecture principles](./ARCHITECTURE.md#1-shared-architecture-
 The default homepage is a responsive React chat app with four channels, persisted display-name preference, a message composer, and realtime updates.
 
 - **SSR:** Waku loads the room's initial message history on the server before rendering the page.
-- **React:** the browser hydrates the chat and handles message submission, connection status, reconnection and missed-message recovery.
-- **REST and WebSocket APIs:** Waku exposes the same room paths as the Hono starter and forwards them server-side.
+- **React + Server Actions:** the browser hydrates the chat, sends through a Waku Server Action, and handles connection status, reconnection and missed-message recovery.
+- **REST and WebSocket APIs:** Waku exposes the same room paths as Hono for external clients and live subscriptions; the React composer uses a Server Action instead of its own REST endpoint.
 - **Durable Objects:** the separate Hono worker uses a Room Durable Object for message history and WebSocket broadcasts.
 
 ```text
 Browser / Waku React
      |
      +-- Waku SSR server component -----------+
-     +-- Waku REST / WebSocket API routes ----+--> CHAT_SERVICE / CHAT_BACKEND_URL
+     +-- Waku Server Action + REST / WS -----+--> CHAT_SERVICE / CHAT_BACKEND_URL
                                                      |
                                                   Hono APIs
                                                      |
