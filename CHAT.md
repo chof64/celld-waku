@@ -1,6 +1,6 @@
 # Chat reference application
 
-This repository uses a **real-time React chat** to demonstrate Waku's full-stack model. It speaks the same Hono chat HTTP/WebSocket contract implemented by [celld-hono](https://github.com/chof64/celld-hono). It does not implement a second copy of chat persistence.
+This repository uses a **real-time React chat** to demonstrate Waku's full-stack model. It speaks the same Hono chat HTTP/WebSocket contract implemented by [celld-hono](https://github.com/chof64/celld-hono). It does not implement a second copy of chat persistence. For comparison, Hono's sibling repository now provides an [optional client-only React/Vite chat SPA](https://github.com/chof64/celld-hono/blob/refactor/sync-waku-hono-standards/WEB.md) that consumes the **same** room REST/WebSocket endpoints without SSR or Server Actions.
 
 ## What it demonstrates
 
