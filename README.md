@@ -1,84 +1,98 @@
 # Celld + Waku
 
-A **full-stack React** starter for [Celld](https://github.com/denoland/celld), using [Waku](https://waku.gg/) for server-rendered pages, React Server Components, client interactivity, Server Actions and API routes.
+A **full-stack React** starter for [Celld](https://github.com/denoland/celld), built with [Waku](https://waku.gg/) for SSR, React Server Components, interactive client components, Server Actions and API routes.
 
-## Sibling starters
+Its reference app is a **real-time chat interface** backed by the Durable Object chat backend in [celld-hono](https://github.com/chof64/celld-hono).
+
+## Two complementary starters
 
 | Starter | Purpose |
 | --- | --- |
-| **[celld-hono](https://github.com/chof64/celld-hono)** | Backend APIs, Durable Objects and stateful services |
-| **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | Full-stack web UI, SSR/RSC, React, and public API handlers |
+| **[celld-hono](https://github.com/chof64/celld-hono)** | Backend-only REST/WebSocket services, Durable Objects, Queues, Workflows |
+| **[celld-waku](https://github.com/chof64/celld-waku)** (this repository) | Full-stack React web apps: SSR/RSC, client UI, Server Actions, API routes |
 
-Both follow the [same shared architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld production runbook](./DEPLOY.md), env allowlist, `ENV_FILE` secret model, and CI workflow. Read [SYNC.md](./SYNC.md) when changing a convention that applies to both.
+Both share [13 architecture principles](./ARCHITECTURE.md#1-shared-architecture-principles), [Celld deployment operations](./DEPLOY.md), the `ENV_FILE` secret contract, and runtime helper conventions. See [SYNC.md](./SYNC.md) for the cross-repository maintenance contract.
 
-Each standalone workflow publishes **one complete Celld application**. To put both Workers in a shared fleet, compose them in a single deployment and use one publisher; running both workflows independently against the same fleet would replace the application, not combine it.
+## Chat app
 
-**Compatibility status: experimental.** Waku's Cloudflare build is not directly deployable to Celld's current prebundled Worker format. We have an experimental packaging bridge, but React Server Components, SSR/hydration, and Server Actions have not yet been verified end-to-end on Celld. Keep this starter out of production until the [Waku compatibility checklist](./DEPLOY.md#waku-compatibility-checklist) passes.
+The default homepage is a responsive React chat app with four channels, persisted display-name preference, a message composer, and realtime updates.
 
-## Get started
+- **SSR:** Waku loads the room's initial message history on the server before rendering the page.
+- **React:** the browser hydrates the chat and handles message submission, connection status, reconnection and missed-message recovery.
+- **REST and WebSocket APIs:** Waku exposes the same room paths as the Hono starter and forwards them server-side.
+- **Durable Objects:** the separate Hono worker uses a Room Durable Object for message history and WebSocket broadcasts.
 
-Requires Node.js 22.15+ and pnpm. Celld commands additionally require a matching Celld CLI.
+```text
+Browser / Waku React
+     |
+     +-- Waku SSR server component -----------+
+     +-- Waku REST / WebSocket API routes ----+--> CHAT_SERVICE / CHAT_BACKEND_URL
+                                                     |
+                                                  Hono APIs
+                                                     |
+                                             Room Durable Object
+```
+
+Read [CHAT.md](./CHAT.md) for the complete two-repository quickstart, production service binding example, and realtime acceptance checks.
+
+### Start locally
+
+Requires Node.js 22.15+, pnpm, and the Celld CLI for the Hono backend.
+
+First start **celld-hono** (the matching backend branch):
 
 ```sh
+cd celld-hono
+pnpm install --frozen-lockfile
+cp .env.example .env
+pnpm dev
+```
+
+Then in a separate terminal start **celld-waku**:
+
+```sh
+cd celld-waku
 pnpm install
 cp .env.example .env
 pnpm dev
 ```
 
-Open `http://localhost:3000`. The Vite/Cloudflare dev server uses local `.dev.vars` generated from the **allowed application variables**, so `GREETING` works in server-side pages. The starter includes a static landing page and React counter, a dynamically server-rendered page at `/demo`, and JSON health APIs at `/health` and `/api/health`.
+Open **http://localhost:3000** and send a message. For local development, the Waku example's `.env.example` uses `CHAT_BACKEND_URL=http://127.0.0.1:9876`; the browser only uses the Waku origin. For a composed Celld deployment, prefer a `CHAT_SERVICE` service binding.
 
-For a production-like Celld local run instead of Vite/workerd development:
-
-```sh
-pnpm dev:celld
-```
-
-This prepares allowed vars, builds Waku, packages the server bundle, derives an ignored `.wrangler.celld.jsonc`, then invokes **native** `celld dev` with that config at `http://127.0.0.1:9876`. This path is currently experimental, and build success does not prove runtime compatibility.
+The frontend still renders when Hono is unavailable and shows a connection error until chat can connect.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Prepare Worker vars and run Waku's Vite development server |
-| `pnpm env:local` | Regenerate ignored `.dev.vars` from the application allowlist |
+| `pnpm dev` | Prepare allowed Worker variables and start Waku's Vite/workerd dev server |
+| `pnpm env:local` | Write ignored `.dev.vars` from the explicit application allowlist |
 | `pnpm build` | Native Waku production build |
-| `pnpm build:celld` | Waku build + experimental single-module Celld packaging |
-| `pnpm dev:celld` | Prepare/build then run native Celld |
-| `pnpm typecheck` | TypeScript checks |
-| `pnpm test` | Unit tests |
-| `pnpm check` | Type checks and tests |
-| `pnpm check:celld` | Build and tests; not a full runtime compatibility check |
-| `pnpm deploy` | Package Waku, inject Worker vars and run native `celld deploy` |
+| `pnpm build:celld` | Package Waku's Worker as one module for Celld (experimental) |
+| `pnpm dev:celld` | Build and start Waku on local Celld, default port 9876 |
+| `pnpm typecheck` | Check TypeScript |
+| `pnpm test` | Run Vitest unit/contract tests |
+| `pnpm check` | Run typecheck and unit tests |
+| `pnpm deploy` | Build and invoke native `celld deploy` |
 
-The common environment, development and deployment helpers live under `celld/scripts/`, matching [celld-hono](https://github.com/chof64/celld-hono). Waku adds only its own build/packaging and preparation wrappers. The root `wrangler.jsonc` points to the native Waku source Worker for Vite; Waku's Celld commands derive `.wrangler.celld.jsonc` with the packaged Worker entry. Only the root config is hand-maintained.
+If both Hono and Waku are running on local Celld, use separate ports (see [CHAT.md](./CHAT.md#testing-waku-on-celld-rather-than-workerd)).
 
-## Full-stack conventions
+## Development conventions
 
-- **Pages and layouts:** Waku's `src/pages` filesystem convention. Static by default; export `getConfig` with `render: 'dynamic'` for SSR.
-- **Interactive UI:** React modules with `'use client'`. Client components cannot import server-only bindings or credentials.
-- **Server Actions:** For web-only mutations. Validate and authorize inputs; handle retries and duplicates.
-- **Public API:** `src/pages/_api/` handlers with named HTTP methods. One resource URL per file; group GET/POST/etc. for the same URL. Use RESTful APIs for Flutter, external services, and webhooks.
-- **Domain logic:** Keep reusable functions independent of Waku pages, actions and HTTP transport. Do not call your own public API from the server just to reuse business logic.
-- **Validation:** Zod as default; Standard Schema where supported.
+Use Waku's native `src/pages` for pages, `_layout.tsx` for layouts, `getConfig().render = 'dynamic'` for request-time SSR, and `'use client'` only for browser interactivity.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for boundaries, folder layout and state ownership.
+Waku API endpoints live in `src/pages/_api/`, expose `GET`, `POST`, and other Web API HTTP methods, and keep HTTP methods for the same resource together. Server components call reusable domain operations directly, not the app's own public API. Validate all requests with Zod; a Server Action requires the same authorization rules as any API endpoint.
 
-## Celld bindings
+Server-only modules may access Celld bindings via `cloudflare:workers`. The chat example uses `CHAT_BACKEND_URL` for local Hono development and an optional `CHAT_SERVICE` binding for co-hosted Celld services. Waku does not currently define Durable Object classes inside its own Worker.
 
-Server-side Waku code can import `env` from `cloudflare:workers`. Declare bindings in the root `wrangler.jsonc`, type them in `celld/env.ts` and `src/env.d.ts`, and expose string variables only through the `workerEnvironment` allowlist. `.env.example` and `.env.prod.example` declare the application contract; the process environment overrides `.env`.
+The root `wrangler.jsonc` is the **one hand-maintained config**. It points to the Waku source Worker for Vite; the Celld build derives an ignored `.wrangler.celld.jsonc` pointing to the prebundled server entry.
 
-Waku does **not currently define Durable Object classes in its own Worker**. Use a separate Hono/DO Worker via a Celld service binding when stateful entity coordination is needed. That Hono Worker can be co-hosted on the same fleet, with its own script identity and migrations.
+## Production and compatibility
 
-## Deploy and CI
+**Waku-to-Celld compatibility is still experimental.** The standard Waku Cloudflare output contains multiple JavaScript modules and cannot be passed directly to Celld's prebundled entrypoint. The package bridge has not been verified end-to-end for RSC streaming, hydration, WebSocket 101 forwarding or Server Actions.
 
-```sh
-pnpm check
-pnpm deploy -- --dry-run
-pnpm deploy
-```
+Do not deploy the chat demo publicly as-is: it is unauthenticated and lacks room authorization, moderation, rate limits and write deduplication. See [CHAT.md](./CHAT.md#before-production).
 
-The `production` GitHub Environment requires `CELLD_VERSION`, `CELLD_BUCKET`, `AWS_REGION`, optional `S3_ENDPOINT`, storage credential secrets, and `ENV_FILE` containing application-only `KEY=value` pairs. The deployment scripts use the same `.wrangler.deploy.jsonc` generation and cleanup as Hono and **do not** call `wrangler deploy`.
+For a production Celld fleet, [DEPLOY.md](./DEPLOY.md) documents single-node/multi-node operation, pinned releases, upgrades, graceful shutdown, GitHub Actions and `ENV_FILE`. **One fleet runs one composed application**: don't independently publish Hono and Waku to a shared fleet. Use one composition/deployment pipeline.
 
-Read the self-contained [DEPLOY.md](./DEPLOY.md) for Coolify/Docker fleet topology, upgrades, graceful drains, CI setup, and the Waku runtime compatibility checklist. GitHub Actions concurrency alone does not coordinate deployment writers across distinct repositories; use one composed fleet deployment pipeline for Xicar's multi-repository application.
-
-The pnpm lockfile has not yet been generated/validated for the Waku starter, so Waku CI temporarily uses `--no-frozen-lockfile`; Hono correctly retains `--frozen-lockfile`. Restore the frozen install and pnpm caching once the Waku lockfile is committed.
+The Waku starter still needs a verified pnpm lockfile and runtime smoke tests before its draft PR can be considered production-ready.
