@@ -634,13 +634,14 @@ Waku's Cloudflare build uses an additional-module model that Celld's prebundled 
 
 1. `pnpm build:celld` emits one server JavaScript entry with no unresolved sibling JS imports and generates `.wrangler.celld.jsonc`.
 2. `pnpm dev:celld` starts on a real Celld runtime without module-resolution, AsyncLocalStorage or streaming errors.
-3. `GET /` serves static/SSR HTML and corresponding CSS and JS assets; the counter hydrates and updates.
-4. `GET /demo` renders the `GREETING` Worker binding dynamically using local `.dev.vars` values.
-5. `GET /api/health` and `GET /health` return JSON rather than HTML asset fallbacks.
-6. Client-side Waku navigation, React Server Components payloads, and a representative Server Action operate across requests.
-7. RSC streaming and browser hydration remain correct under multiple simultaneous requests.
-8. A deploy/redeploy and graceful Celld node restart do not break routing or asset lookup.
-9. A configured Celld service binding reaches a separate Hono/DO Worker where the application needs that functionality.
+3. `GET /` returns a server-rendered chat with initial Hono room history, serves its CSS and React client scripts, and hydrates the interactive chat.
+4. `GET /rooms/drivers` loads that room's SSR history independently of `/rooms/dispatch`; invalid room IDs render a not-found response.
+5. `GET /api/health`, `GET /health`, and `GET /api/rooms/lobby/messages` return JSON rather than frontend asset fallbacks.
+6. Two browsers open WebSockets at `/api/rooms/lobby/socket`. Sending via the **Waku Server Action** broadcasts one saved message without duplicated sender UI.
+7. Reconnect after temporarily stopping Hono; WebSocket 101 tunneling and subsequent history re-sync recover missed messages.
+8. RSC streaming, navigation and hydration remain correct under concurrent requests, and the app shows a visible connection error when chat is unavailable.
+9. A deploy/redeploy and graceful Celld node restart do not break routing, client scripts, or realtime reconnection.
+10. A configured `CHAT_SERVICE` service binding reaches the Hono/DO Worker without exposing the internal Worker to the browser.
 
 A successful TypeScript check, build, or `celld deploy --dry-run` is not runtime proof. See [Celld compatibility](https://github.com/denoland/celld/blob/main/docs/cloudflare-compat.md), [prebuilt Worker restrictions](https://github.com/denoland/celld/blob/main/docs/wasm.md), and [Waku Cloudflare guide](https://waku.gg/guides/cloudflare).
 
