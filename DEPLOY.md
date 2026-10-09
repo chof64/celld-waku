@@ -295,7 +295,7 @@ CELLD_VERSION -> install pinned Celld -> pnpm check -> ENV_FILE -> .env --+
 CELLD_BUCKET + S3 settings + AWS credential secrets ---------------------+
 ```
 
-The deploy wrapper merges `.env` with the process environment and passes the result to Celld. Only variables explicitly declared in `celld/env.ts` are copied into Worker bindings. The bucket credentials are available to the deploy CLI and are not written into `.env` or exposed as Worker bindings.
+The deploy wrapper merges `.env` with the process environment and passes the result to Celld. Only variables explicitly declared in `src/env.ts` are copied into Worker bindings. The bucket credentials are available to the deploy CLI and are not written into `.env` or exposed as Worker bindings.
 
 The workflow runs dependency installation and checks before it reads `ENV_FILE`. It then rejects Celld, AWS and S3 infrastructure settings in the file, writes `.env` with restrictive file permissions, and never intentionally prints its contents. The file is already ignored by Git. The S3 credentials are scoped to the deployment steps rather than dependency installation and checks.
 
@@ -630,7 +630,7 @@ Reference: [Diagnose a fleet](https://github.com/denoland/celld/blob/main/docs/R
 
 # Waku compatibility checklist
 
-Waku's Cloudflare build uses an additional-module model that Celld's prebundled `no_bundle` deploy does not automatically support. The `celld/scripts/package.ts` bridge to `dist/celld/worker.mjs` is **experimental**. The canonical root Wrangler config points to Waku's source entry for the Cloudflare Vite plugin; a derived and ignored `.wrangler.celld.jsonc` points to the bundled Worker and drops unsupported Wrangler `ESModule` rules. Do not deploy this starter to production until all of the following pass using pinned Waku, React and Celld versions:
+Waku's Cloudflare build uses an additional-module model that Celld's prebundled `no_bundle` deploy does not automatically support. The `scripts/package.ts` bridge to `dist/celld/worker.mjs` is **experimental**. The canonical root Wrangler config points to Waku's source entry for the Cloudflare Vite plugin; a derived and ignored `.wrangler.celld.jsonc` points to the bundled Worker and drops unsupported Wrangler `ESModule` rules. Do not deploy this starter to production until all of the following pass using pinned Waku, React and Celld versions:
 
 1. `pnpm build:celld` emits one server JavaScript entry with no unresolved sibling JS imports and generates `.wrangler.celld.jsonc`.
 2. `pnpm dev:celld` starts on a real Celld runtime without module-resolution, AsyncLocalStorage or streaming errors.
