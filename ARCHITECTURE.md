@@ -14,7 +14,7 @@ These principles are intentionally **identical in both Celld starters**. When ch
 6. **Validate and authorize at every trust boundary.** Use Zod as the default schema implementation and Standard Schema where a framework provides a compatible integration. Treat Server Actions as public server entrypoints.
 7. **Make state ownership explicit.** For Xicar, PlanetScale Postgres and application S3 remain authoritative; Celld coordination/cache state is rebuildable unless a feature deliberately establishes a different persistence contract.
 8. **Use one canonical root `wrangler.jsonc`.** It declares binding identities and entrypoints but contains no production secrets. Do not add separate development, staging, or production Wrangler files by default.
-9. **Separate application variables from fleet credentials.** `celld/env.ts` declares the application allowlist; `.env` supplies local values, and process variables override it. CI supplies application values via `ENV_FILE`; Celld bucket, node, and storage credentials remain process/infrastructure settings.
+9. **Separate application variables from fleet credentials.** `src/env.ts` declares the application allowlist; `.env` supplies local values, and process variables override it. CI supplies application values via `ENV_FILE`; Celld bucket, node, and storage credentials remain process/infrastructure settings.
 10. **Keep the Celld commands native and visible.** Project scripts may prepare environment and build artifacts, but `celld dev` and `celld deploy` own execution and publication. Do not deploy to Celld with `wrangler deploy`.
 11. **Standardize operations across both starters.** Use the same production GitHub Environment contract, pinned `CELLD_VERSION`, serialized deploys, dry-run before publish, and the same single-node/multi-node/upgrade runbook.
 12. **Protect persistent identities.** Treat Worker names, Durable Object class and binding names, migration tags, service bindings, and storage identities as schema. Append migrations intentionally; do not casually rename live resources.
@@ -69,7 +69,7 @@ Use the standard `Response` API and predictable JSON status/error contracts. Ope
 
 ## 5. Worker bindings and Durable Objects
 
-Import `env` from `cloudflare:workers` only in server-only modules. `src/env.d.ts` extends the typed binding contract in `celld/env.ts`; the runtime and asset bindings are declared in one canonical `wrangler.jsonc`.
+Import `env` from `cloudflare:workers` only in server-only modules. `src/env.d.ts` extends the typed binding contract in `src/env.ts`; the runtime and asset bindings are declared in one canonical `wrangler.jsonc`.
 
 ```text
 Web browser
@@ -132,7 +132,7 @@ Do not introduce a separate `server/` router, obligatory controller/repository l
 
 ## 7. Application environment and development
 
-Both repositories use the **same** `celld/scripts/env.ts`, `celld/scripts/dev.ts`, and `celld/scripts/deploy.ts` helpers. `.env` is optional locally; the process environment overrides its keys. Only keys in `celld/env.ts` are exported as Worker string variables. Deployment infrastructure credentials are not copied into the Worker.
+Both repositories use the **same** `scripts/env.ts`, `scripts/dev.ts`, and `scripts/deploy.ts` helpers. `.env` is optional locally; the process environment overrides its keys. Only keys in `src/env.ts` are exported as Worker string variables. Deployment infrastructure credentials are not copied into the Worker.
 
 Commands:
 
